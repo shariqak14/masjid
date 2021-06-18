@@ -1,82 +1,43 @@
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt
+
 from datetime import datetime, timedelta, date
+from calendar import Calendar, day_name, monthrange
+
 from tkinter import *
 from tkinter.ttk import *
-from calendar import Calendar, day_name
 
-import requests
+from api import get_prayer_time, get_lunar_date
+from constants import LUNAR_MONTHS_ENG, LUNAR_MONTHS_ARABIC, GREG_MONTHS
 
-MONTH = "June"
-YEAR = "2021"
+MONTH = "February"
+YEAR = "2022"
 
-lunar_months = [
-    "Muharram",
-    "Safar",
-    "Rabi' al-awwal",
-    "Rabi' al-thani",
-    "Jumada al-awwal",
-    "Jumada al-thani",
-    "Rajab",
-    "Sha'aban",
-    "Ramadan",
-    "Shawwal",
-    "Dhu al-Qi'dah",
-    "Dhu al-Hijjah",
-]
-
-def get_prayer_time(month):
-    apiURL = "http://www.islamicfinder.us/index.php/api/prayer_times"
-
-    apiParams = {
-        "country": "US",
-        "zipcode": "06029",
-        "juristic": 1,
-        "time_format": 2,
-        "show_entire_month": 1,
-        "date": month,
-    }
-
-    response = requests.get(apiURL, params=apiParams)
-
-    prayerTimes = list(response.json()["results"].values())
-
-    return prayerTimes
-
-
-def get_lunar_date(year, month, day):
-    apiURL = "http://www.islamicfinder.us/index.php/api/calendar"
-
-    apiParams = {
-        "year": year,
-        "month": month,
-        "day": day,
-    }
-
-    response = requests.get(apiURL, params=apiParams)
-
-    _, month, day = response.json()["to"].split("-")
-
-    return int(month), int(day)
-
+def number_of_days_in_month(year=2021, month=2):
+    return monthrange(year, month)[1]
 
 def format_cell(
     cell, center=True, bold=False, italic=False, font_size=12, font="Arial"
 ):
-    if center:
-        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cell.paragraphs[0].runs[0].font.bold = bold
-    cell.paragraphs[0].runs[0].italic = italic
-    cell.paragraphs[0].runs[0].font.size = Pt(font_size)
-    cell.paragraphs[0].runs[0].font.name = font
+    run = cell.paragraphs[0].runs[0]
 
+    run.font.bold = bold
+    run.font.size = Pt(font_size)
+    run.font.name = font
+
+    run.italic = italic
+
+    if center: 
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 ####################################################################################
 # Edit Document
 ####################################################################################
 
-doc = Document("June_2021.docx")
+NUM_DAYS = number_of_days_in_month(int(YEAR), GREG_MONTHS[MONTH])
+doc = Document("templates/" + str(NUM_DAYS) + "_days.docx")
+
 table = doc.tables[0]
 
 month_heading = table.cell(0, 10)
@@ -93,8 +54,8 @@ format_cell(month_row_title, bold=True, font_size=11, font="Times New Roman")
 
 uniq_lunar_months = []
 
-for j in range(3, 33):
-    my_date = date(int(YEAR), int("06"), j - 2)
+for j in range(3, NUM_DAYS + 3):
+    my_date = date(int(YEAR), GREG_MONTHS[MONTH], j - 2)
     name_of_day = str(day_name[my_date.weekday()])[:3]
 
     day_col = table.cell(j, 2)
@@ -105,16 +66,16 @@ for j in range(3, 33):
     day_no_col.text = str(j - 2)
     format_cell(day_no_col, bold=True)
 
-    lunar_month, lunary_day = get_lunar_date(int(YEAR), int("06"), j - 2)
+    lunar_month, lunary_day = get_lunar_date(int(YEAR), GREG_MONTHS[MONTH], j - 2)
 
     lunary_day_col = table.cell(j, 4)
 
     if j == 3:
-        lunary_day_col.text = lunar_months[lunar_month - 1] + " " + str(lunary_day)
-        format_cell(lunary_day_col, bold=True, italic=True, font_size=10)
+        lunary_day_col.text = LUNAR_MONTHS_ENG[lunar_month - 1] + " " + str(lunary_day)
+        format_cell(lunary_day_col, bold=True, italic=True, font_size=10.5)
     elif lunary_day == 1:
-        lunary_day_col.text = lunar_months[lunar_month - 1] + " " + str(lunary_day) + "*"
-        format_cell(lunary_day_col, bold=True, italic=True, font_size=10)
+        lunary_day_col.text = LUNAR_MONTHS_ENG[lunar_month - 1] + " " + str(lunary_day) + "*"
+        format_cell(lunary_day_col, bold=True, italic=True, font_size=10.5)
     else:
         lunary_day_col.text = str(lunary_day)
         format_cell(lunary_day_col)
@@ -124,8 +85,10 @@ for j in range(3, 33):
 
 month_1, month_2 = uniq_lunar_months[0], uniq_lunar_months[1]
 lunar_col_title = table.cell(2, 4)
-lunar_col_title.text = lunar_months[month_1 - 1] + "\n" + lunar_months[month_1 - 2] + "\n" + "1442 AH"
-format_cell(lunar_col_title, bold=True, italic=True, font_size=10)
+lunar_col_title.text = LUNAR_MONTHS_ARABIC[month_1 - 1] + "\n" + LUNAR_MONTHS_ARABIC[month_1 - 2] + "\n" + "1442 AH"
+lunar_col_title.paragraphs[0].runs[0].font.complex_script = True
+lunar_col_title.paragraphs[0].runs[0].font.rtl = True
+format_cell(lunar_col_title, font_size=10)
 
 ####################################################################################
 # Insert Prayer Times
@@ -140,7 +103,7 @@ prayers = {"Fajr": 5, "Duha": 8, "Dhuhr": 9, "Asr": 11, "Maghrib": 13, "Isha": 1
 for prayer, col_no in prayers.items():
     times = list(map(lambda x: x[prayer], prayer_times))
 
-    for j in range(3, 33):
+    for j in range(3, NUM_DAYS + 3):
         pr_time = table.cell(j, col_no)
         pr_time.text = times[j - 3]  # prayer[:2]
         format_cell(pr_time)
@@ -156,7 +119,7 @@ for prayer, col_no in prayers.items():
             iqamah_cell.text = iqamah_time
             format_cell(iqamah_cell, bold=True)
 
-doc.save("grid2.docx")
+doc.save("calendars/" + MONTH + "_" + YEAR + ".docx")
 
 # window = Tk()
 
