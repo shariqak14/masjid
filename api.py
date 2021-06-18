@@ -1,5 +1,6 @@
 import requests
 
+
 def get_prayer_time(month):
     apiURL = "http://www.islamicfinder.us/index.php/api/prayer_times"
 
