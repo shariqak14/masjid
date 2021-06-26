@@ -11,6 +11,8 @@ from tkinter.ttk import *
 from api import get_prayer_time, get_lunar_date
 from constants import LUNAR_MONTHS, GREG_MONTHS
 
+import os
+
 
 def number_of_days_in_month(year=2021, month=2):
     return monthrange(year, month)[1]
@@ -39,6 +41,7 @@ def main():
     ####################################################################################
 
     NUM_DAYS = number_of_days_in_month(int(year_input), GREG_MONTHS[month_input])
+
     doc = Document("templates/" + str(NUM_DAYS) + "_days.docx")
 
     table = doc.tables[0]
@@ -93,7 +96,7 @@ def main():
     month_1, month_2 = uniq_lunar_months[0], uniq_lunar_months[1]
     lunar_col_title = table.cell(2, 4)
     lunar_col_title.text = (
-        LUNAR_MONTHS[month_1 - 1] + "\n" + LUNAR_MONTHS[month_1 - 2] + "\n" + "1442 AH"
+        LUNAR_MONTHS[month_1 - 1] + "\n" + LUNAR_MONTHS[month_2 - 1] + "\n" + "1442 AH"
     )
     format_cell(lunar_col_title, font_size=10.5, bold=True, italic=True)
 
@@ -109,10 +112,11 @@ def main():
 
     for prayer, col_no in prayers.items():
         times = list(map(lambda x: x[prayer], prayer_times))
+        print(len(times))
 
         for j in range(3, NUM_DAYS + 3):
             pr_time = table.cell(j, col_no)
-            pr_time.text = times[j - 3]  # prayer[:2]
+            pr_time.text = times[j - 3]
             format_cell(pr_time)
 
             if prayer == "Maghrib":
@@ -126,6 +130,9 @@ def main():
                 iqamah_cell.text = iqamah_time
                 format_cell(iqamah_cell, bold=True)
 
+    if not os.path.exists("calendars"):
+        os.makedirs("calendars")
+
     doc.save("calendars/" + month_input + "_" + year_input + ".docx")
 
 
@@ -133,7 +140,7 @@ if __name__ == "__main__":
     window = Tk()
     window.title("Masjid Calendar")
     window.geometry("300x150")
-    window.eval('tk::PlaceWindow . center')
+    window.eval("tk::PlaceWindow . center")
 
     Label(window, text="Month  ").grid(row=0)
     Label(window, text="Year").grid(row=1)
@@ -143,13 +150,13 @@ if __name__ == "__main__":
 
     e1 = Combobox(window, width=8)
     e1["values"] = list(GREG_MONTHS.keys())
-    e1.current(current_month-1)  # set the selected item
+    e1.current(current_month - 1)
     e1.grid(row=0, column=1)
 
     dflt = IntVar()
     dflt.set(current_year)
 
-    e2 = Spinbox(window, from_=2021, to=2121, width=8, textvariable=dflt)
+    e2 = Spinbox(window, from_=2020, to=2121, width=8, textvariable=dflt)
     e2.grid(row=1, column=1)
 
     Button(window, text="Submit", command=main).grid(row=3, column=1, sticky=W, pady=4)
