@@ -138,26 +138,33 @@ def main():
 if __name__ == "__main__":
     window = Tk()
     window.title("Masjid Calendar")
-    window.geometry("300x150")
+    window.geometry("400x275")
     window.eval("tk::PlaceWindow . center")
 
-    Label(window, text="Month  ").grid(row=0)
-    Label(window, text="Year").grid(row=1)
+    lbl1 = Label(window, text="Month")
 
     current_month = int(datetime.now().strftime("%m"))
     current_year = int(datetime.today().year)
 
-    e1 = Combobox(window, width=8)
+    e1 = Combobox(window, width=15)
     e1["values"] = list(GREG_MONTHS.keys())
     e1.current(current_month - 1)
     e1.grid(row=0, column=1)
 
+    lbl1.place(x=80, y=50)
+    e1.place(x=180, y=50)
+
+    lbl2 = Label(window, text="Year")
+
     dflt = IntVar()
     dflt.set(current_year)
 
-    e2 = Spinbox(window, from_=2020, to=2121, width=8, textvariable=dflt)
-    e2.grid(row=1, column=1)
+    e2 = Spinbox(window, from_=2020, to=2121, width=15, textvariable=dflt)
 
-    Button(window, text="Submit", command=main).grid(row=3, column=1, sticky=W, pady=4)
+    lbl2.place(x=80, y=100)
+    e2.place(x=180, y=100)
+
+    b1 = Button(window, text="Submit", command=main, width=34)
+    b1.place(x=80, y=150)
 
     window.mainloop()
