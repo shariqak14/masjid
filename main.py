@@ -8,7 +8,7 @@ from calendar import Calendar, day_name, monthrange
 from tkinter import *
 from tkinter.ttk import *
 
-from api import get_prayer_time, get_lunar_date
+from api import get_prayer_time, get_lunar_date, get_islamic_year
 from constants import LUNAR_MONTHS, GREG_MONTHS
 
 import os
@@ -96,7 +96,7 @@ def main():
     month_1, month_2 = uniq_lunar_months[0], uniq_lunar_months[1]
     lunar_col_title = table.cell(2, 4)
     lunar_col_title.text = (
-        LUNAR_MONTHS[month_1 - 1] + "\n" + LUNAR_MONTHS[month_2 - 1] + "\n" + "1442 AH"
+        LUNAR_MONTHS[month_1 - 1] + "\n" + LUNAR_MONTHS[month_2 - 1] + "\n" + get_islamic_year(month_input, year_input) + " AH"
     )
     format_cell(lunar_col_title, font_size=10.5, bold=True, italic=True)
 
@@ -104,7 +104,7 @@ def main():
     # Insert Prayer Times
     ####################################################################################
 
-    prayer_times = get_prayer_time(month=month_input)
+    prayer_times = get_prayer_time(month=month_input, year=year_input)
 
     num_of_rows = len(prayer_times)
 
