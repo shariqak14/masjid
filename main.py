@@ -112,7 +112,6 @@ def main():
 
     for prayer, col_no in prayers.items():
         times = list(map(lambda x: x[prayer], prayer_times))
-        print(len(times))
 
         for j in range(3, NUM_DAYS + 3):
             pr_time = table.cell(j, col_no)

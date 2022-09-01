@@ -1,8 +1,11 @@
+from datetime import datetime
+from constants import GREG_MONTHS
 import requests
-
 
 def get_prayer_time(month):
     apiURL = "http://www.islamicfinder.us/index.php/api/prayer_times"
+
+    date = str(datetime.now().year) + "-" + str(GREG_MONTHS[month]) + "-01"
 
     apiParams = {
         "country": "US",
@@ -10,7 +13,7 @@ def get_prayer_time(month):
         "juristic": 1,
         "time_format": 2,
         "show_entire_month": 1,
-        "date": month,
+        "date": date,
     }
 
     response = requests.get(apiURL, params=apiParams)
@@ -18,7 +21,6 @@ def get_prayer_time(month):
     prayerTimes = list(response.json()["results"].values())
 
     return prayerTimes
-
 
 def get_lunar_date(year, month, day):
     apiURL = "http://www.islamicfinder.us/index.php/api/calendar"
