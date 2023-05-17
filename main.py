@@ -42,7 +42,10 @@ def main():
 
     NUM_DAYS = number_of_days_in_month(int(year_input), GREG_MONTHS[month_input])
 
+    cwd = os.getcwd()
+    os.chdir(sys._MEIPASS)
     doc = Document("templates/" + str(NUM_DAYS) + "_days.docx")
+    os.chdir(cwd)
 
     table = doc.tables[0]
 
@@ -129,10 +132,7 @@ def main():
                 iqamah_cell.text = iqamah_time
                 format_cell(iqamah_cell, bold=True)
 
-    if not os.path.exists("calendars"):
-        os.makedirs("calendars")
-
-    doc.save("calendars/" + month_input + "_" + year_input + ".docx")
+    doc.save(month_input + "_" + year_input + ".docx")
 
 
 if __name__ == "__main__":
