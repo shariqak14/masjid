@@ -1,5 +1,5 @@
 # Masjid Calendar
 
 ```
-python -m PyInstaller --onefile --add-data="templates/*;templates/" main.py
+python -m PyInstaller --onefile --noconsole --add-data="templates/*;templates/" main.py
 ```
