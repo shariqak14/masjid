@@ -13,6 +13,42 @@ from constants import LUNAR_MONTHS, GREG_MONTHS
 
 import os
 
+import smtplib
+from os.path import basename
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
+
+
+def send_mail(send_from, send_to, subject, text, files=None):
+    assert isinstance(send_to, list)
+
+    msg = MIMEMultipart()
+    msg['From'] = send_from
+    msg['To'] = COMMASPACE.join(send_to)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(text))
+
+    for f in files or []:
+        with open(f, "rb") as fil:
+            part = MIMEApplication(
+                fil.read(),
+                Name=basename(f)
+            )
+        # After the file is closed
+        part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
+        msg.attach(part)
+
+    password = "INSERT_PASSWORD"
+    server = smtplib.SMTP('smtp.gmail.com',587)
+    server.starttls()
+    server.login(send_from, password)
+    server.sendmail(send_from, send_to, msg.as_string())
+    server.close()
+
 
 def number_of_days_in_month(year=2021, month=2):
     return monthrange(year, month)[1]
@@ -132,7 +168,16 @@ def main():
                 iqamah_cell.text = iqamah_time
                 format_cell(iqamah_cell, bold=True)
 
-    doc.save(month_input + "_" + year_input + ".docx")
+    filename = month_input + "_" + year_input + ".docx"
+    doc.save(filename)
+
+    send_mail(
+        send_from="shariq808@gmail.com",
+        send_to=["sharif.kamalvi6@gmail.com"], 
+        subject=f"Masjid Calendar - {month_input} {year_input}", 
+        text="",
+        files=[filename],
+    )
 
 
 if __name__ == "__main__":
